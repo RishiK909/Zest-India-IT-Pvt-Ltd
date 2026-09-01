@@ -71,13 +71,28 @@ Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 
 Products and Items are soft-deleted rather than physically removed. A `deletedAt` timestamp is set on delete, and `@SQLRestriction("deleted_at IS NULL")` ensures all read queries automatically exclude deleted records. Deleting a product cascades a soft delete to its items.
 
-
 ## Security & Performance Notes
 
 - **CORS**: configured via `CorsConfigurationSource` in `SecurityConfig` to allow requests from approved frontend origins.
 - **HTTPS**: in production, HTTPS is enforced at the reverse-proxy / load-balancer level (e.g. Nginx, AWS ALB); the application itself runs on HTTP internally within the container network.
 - **Validation**: request payloads are validated using Jakarta Bean Validation (`@Valid`).
 - **Indexing**: `product_id` (foreign key on `item`) is indexed to optimize the items-by-product lookup.
+
+## Git Workflow
+
+Work is organized into feature branches, each merged into `master` once complete:
+
+- `security` — Spring Security, JWT, refresh tokens, CORS
+- `deploy` — Docker, Docker Compose, deployment config
+- `crud` — Product/Item CRUD endpoints and business logic
+- `master` — stable, integrated branch
+
+```bash
+git checkout -b feat/product-security   # or deploy / crud
+# ... make changes, commit ...
+git push origin feat/product-security
+# open a PR / merge into master once the branch is ready
+```
 
 ## Environment Variables
 
