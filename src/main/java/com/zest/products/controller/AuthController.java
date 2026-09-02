@@ -2,9 +2,9 @@ package com.zest.products.controller;
 
 import com.zest.products.dto.*;
 import com.zest.products.entity.RefreshToken;
-import com.zest.products.entity.Users;
+import com.zest.products.entity.User;
 import com.zest.products.exception.InvalidRefreshTokenException;
-import com.zest.products.repository.AuthRepository;
+import com.zest.products.repository.UserRepository;
 import com.zest.products.security.JwtUtil;
 import com.zest.products.service.AuthDetailServiceImpl;
 import com.zest.products.service.AuthService;
@@ -28,68 +28,79 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Auth", description = "APIs for user registration, login, token refresh and logout")
-public class AuthLoginController {
+public class AuthController {
 
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
     private final AuthDetailServiceImpl authDetailService;
     private final JwtUtil jwtUtil;
-    private final AuthRepository authRepository;
+    private final UserRepository userRepository;
 
-    public AuthLoginController(AuthService authService, RefreshTokenService refreshTokenService, AuthDetailServiceImpl authDetailService, JwtUtil jwtUtil, AuthRepository authRepository) {
+    public AuthController(AuthService authService, RefreshTokenService refreshTokenService, AuthDetailServiceImpl authDetailService, JwtUtil jwtUtil, UserRepository userRepository) {
         this.authService = authService;
         this.refreshTokenService = refreshTokenService;
         this.authDetailService = authDetailService;
         this.jwtUtil = jwtUtil;
-        this.authRepository = authRepository;
+        this.userRepository = userRepository;
     }
+
+    // ------------------------------- Register User -------------------------------------------------------------------
 
     @Operation(summary = "Register a new user",
             description = "Creates a new user account with the provided registration details.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User registered successfully",
-                    content = @Content(schema = @Schema(implementation = com.zest.products.dto.ApiResponse.class))),
+                    content = @Content(schema = @Schema(implementation = ApiResponseDTO.class))),
             @ApiResponse(responseCode = "400", description = "Invalid registration details or user already exists")
     })
     @PostMapping("/register")
-    public ResponseEntity<com.zest.products.dto.ApiResponse<Void>> register(@Valid @RequestBody AuthRegisterDto request) {
-        com.zest.products.dto.ApiResponse<Void> response = authService.register(request);
+    public ResponseEntity<ApiResponseDTO<Void>> register(@Valid @RequestBody AuthRegisterDTO request) {
+        ApiResponseDTO<Void> response = authService.register(request);
         return response.isStatus()
                 ? ResponseEntity.ok(response)
                 : ResponseEntity.badRequest().body(response);
     }
 
+
+    // ------------------------------------------ Login User -----------------------------------------------------------
     @Operation(summary = "Login a user",
             description = "Authenticates a user using email and password, and returns an access token and refresh token.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login successful",
-                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+                    content = @Content(schema = @Schema(implementation = AuthResponseDTO.class))),
             @ApiResponse(responseCode = "400", description = "Invalid credentials")
     })
     @PostMapping("/login")
-    public ResponseEntity<com.zest.products.dto.ApiResponse<AuthResponseDto>> login(@Valid @RequestBody LoginRequestDTO request) {
-        com.zest.products.dto.ApiResponse<AuthResponseDto> response = authService.login(request);
+    public ResponseEntity<ApiResponseDTO<AuthResponseDTO>> login(@Valid @RequestBody LoginRequestDTO request) {
+        ApiResponseDTO<AuthResponseDTO> response = authService.login(request);
         return response.isStatus()
                 ? ResponseEntity.ok(response)
                 : ResponseEntity.badRequest().body(response);
     }
+
+
+    // --------------------------------------------- Fetch Current User ------------------------------------------------
 
     @Operation(summary = "Fetch current authenticated user",
             description = "Returns the details of the currently authenticated user based on the security context.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Current user fetched successfully",
-                    content = @Content(schema = @Schema(implementation = AuthResponseDto.class))),
+                    content = @Content(schema = @Schema(implementation = AuthResponseDTO.class))),
             @ApiResponse(responseCode = "400", description = "Unable to resolve current user")
     })
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/current-user")
-    public ResponseEntity<com.zest.products.dto.ApiResponse<AuthResponseDto>> getCurrentUser(Authentication authentication) {
+    public ResponseEntity<ApiResponseDTO<AuthResponseDTO>> getCurrentUser(Authentication authentication) {
         String email = authentication.getName();
-        com.zest.products.dto.ApiResponse<AuthResponseDto> response = authService.getCurrentUser(email);
+        ApiResponseDTO<AuthResponseDTO> response = authService.getCurrentUser(email);
         return response.isStatus()
                 ? ResponseEntity.ok(response)
                 : ResponseEntity.badRequest().body(response);
     }
+
+
+
+    // ------------------------------------ Refresh access token -------------------------------------------------------
 
     @Operation(summary = "Refresh access token",
             description = "Rotates the given refresh token and issues a new access token along with a new refresh token.")
@@ -104,7 +115,7 @@ public class AuthLoginController {
         String newRefreshToken = refreshTokenService.rotateRefreshToken(request.getRefreshToken());
 
         RefreshToken validated = refreshTokenService.validateRefreshToken(newRefreshToken);
-        Users user = validated.getUser();
+        User user = validated.getUser();
 
         UserDetails userDetails = authDetailService.loadUserByUsername(user.getEmail());
         String newAccessToken = jwtUtil.generateAccessToken(userDetails);
@@ -114,6 +125,8 @@ public class AuthLoginController {
         );
     }
 
+
+    // ------------------------------------------- Logout --------------------------------------------------------------
     @Operation(summary = "Logout from all devices",
             description = "Revokes all active refresh tokens for the authenticated user, logging them out from all devices.")
     @ApiResponses(value = {
@@ -125,7 +138,7 @@ public class AuthLoginController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@AuthenticationPrincipal UserDetails userDetails) {
 
-        Users user = authRepository.findByEmail(userDetails.getUsername())
+        User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new InvalidRefreshTokenException("User not found"));
 
         refreshTokenService.revokeAllTokensForUser(user);

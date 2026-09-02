@@ -12,9 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * Handles all business logic for Product and its related Items.
+ */
 @Service
 public class ProductServiceImpl implements ProductService {
 
@@ -26,6 +29,13 @@ public class ProductServiceImpl implements ProductService {
         this.itemRepository = itemRepository;
     }
 
+    /**
+     * Creates a new product. If items are included in the request
+     *
+     * @param request   product name and optional list of items
+     * @param createdBy id of the user creating this product
+     * @return the created product, including any items
+     */
     @Override
     @Transactional
     public ProductResponseDTO createProduct(ProductRequestDTO request, Long createdBy) {
@@ -35,22 +45,27 @@ public class ProductServiceImpl implements ProductService {
         product.setCreatedBy(createdBy);
 
         if (request.getItems() != null && !request.getItems().isEmpty()) {
-            List<Item> items = request.getItems().stream()
-                    .map(itemDto -> {
-                        Item item = new Item();
-                        item.setQuantity(itemDto.getQuantity());
-                        item.setProduct(product);
-                        return item;
-                    })
-                    .collect(Collectors.toList());
+            List<Item> items = new ArrayList<>();
+
+            for (ItemRequestDTO itemDto : request.getItems()) {
+                Item item = new Item();
+                item.setQuantity(itemDto.getQuantity());
+                item.setProduct(product);
+                items.add(item);
+            }
 
             product.setItems(items);
         }
 
-        Product saved = productRepository.save(product);   // cascade se items bhi save ho jayenge
+        Product saved = productRepository.save(product);
         return mapToResponse(saved);
     }
 
+    /**
+     * Fetches a single product by its id.
+     *
+     * @throws ResourceNotFoundException if no active product exists with this id
+     */
     @Override
     public ProductResponseDTO getProductById(Long id) {
         Product product = productRepository.findById(id)
@@ -58,14 +73,17 @@ public class ProductServiceImpl implements ProductService {
         return mapToResponse(product);
     }
 
+    /**
+     * Fetches all products in a paginated format.
+     */
     @Override
     public PagedResponse<ProductResponseDTO> getAllProducts(Pageable pageable) {
         Page<Product> page = productRepository.findAll(pageable);
 
-        List<ProductResponseDTO> content = page.getContent()
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        List<ProductResponseDTO> content = new ArrayList<>();
+        for (Product product : page.getContent()) {
+            content.add(mapToResponse(product));
+        }
 
         return new PagedResponse<>(
                 content,
@@ -77,6 +95,11 @@ public class ProductServiceImpl implements ProductService {
         );
     }
 
+    /**
+     * Updates an existing product's name and, if provided, replaces all its items.
+     *
+     * @throws ResourceNotFoundException if no active product exists with this id
+     */
     @Override
     @Transactional
     public ProductResponseDTO updateProduct(Long id, ProductRequestDTO request, Long modifiedBy) {
@@ -88,18 +111,16 @@ public class ProductServiceImpl implements ProductService {
         product.setModifiedBy(modifiedBy);
         product.setModifiedOn(LocalDateTime.now());
 
-
         if (request.getItems() != null) {
             product.getItems().clear();
 
-            List<Item> newItems = request.getItems().stream()
-                    .map(itemDto -> {
-                        Item item = new Item();
-                        item.setQuantity(itemDto.getQuantity());
-                        item.setProduct(product);
-                        return item;
-                    })
-                    .toList();
+            List<Item> newItems = new ArrayList<>();
+            for (ItemRequestDTO itemDto : request.getItems()) {
+                Item item = new Item();
+                item.setQuantity(itemDto.getQuantity());
+                item.setProduct(product);
+                newItems.add(item);
+            }
 
             product.getItems().addAll(newItems);
         }
@@ -108,6 +129,11 @@ public class ProductServiceImpl implements ProductService {
         return mapToResponse(updated);
     }
 
+    /**
+     * Soft-deletes a product and all of its items.
+     *
+     * @throws ResourceNotFoundException if no active product exists with this id
+     */
     @Override
     @Transactional
     public void deleteProduct(Long id) {
@@ -126,6 +152,11 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
     }
 
+    /**
+     * Fetches all items belonging to a product, in a paginated format.
+     *
+     * @throws ResourceNotFoundException if no active product exists with this id
+     */
     @Override
     public PagedResponse<ItemResponseDTO> getItemsByProductId(Long productId, Pageable pageable) {
         if (!productRepository.existsById(productId)) {
@@ -134,10 +165,10 @@ public class ProductServiceImpl implements ProductService {
 
         Page<Item> page = itemRepository.findByProductId(productId, pageable);
 
-        List<ItemResponseDTO> content = page.getContent()
-                .stream()
-                .map(this::mapToItemResponse)
-                .collect(Collectors.toList());
+        List<ItemResponseDTO> content = new ArrayList<>();
+        for (Item item : page.getContent()) {
+            content.add(mapToItemResponse(item));
+        }
 
         return new PagedResponse<>(
                 content,
@@ -149,10 +180,17 @@ public class ProductServiceImpl implements ProductService {
         );
     }
 
+    /**
+     * Converts a Product entity into its response DTO, including its items.
+     */
     private ProductResponseDTO mapToResponse(Product product) {
-        List<ItemResponseDTO> itemDtos = product.getItems() != null
-                ? product.getItems().stream().map(this::mapToItemResponse).collect(Collectors.toList())
-                : List.of();
+        List<ItemResponseDTO> itemDtos = new ArrayList<>();
+
+        if (product.getItems() != null) {
+            for (Item item : product.getItems()) {
+                itemDtos.add(mapToItemResponse(item));
+            }
+        }
 
         return new ProductResponseDTO(
                 product.getId(),
@@ -165,6 +203,9 @@ public class ProductServiceImpl implements ProductService {
         );
     }
 
+    /**
+     * Converts an Item entity into its response DTO.
+     */
     private ItemResponseDTO mapToItemResponse(Item item) {
         return new ItemResponseDTO(
                 item.getId(),

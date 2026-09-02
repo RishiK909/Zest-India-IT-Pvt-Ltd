@@ -17,7 +17,7 @@ public class RefreshToken{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private User user;
 
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
@@ -34,8 +34,8 @@ public class RefreshToken{
     public void setId(Long id) { this.id = id; }
     public String getTokenHash() { return tokenHash; }
     public void setTokenHash(String tokenHash) { this.tokenHash = tokenHash; }
-    public Users getUser() { return user; }
-    public void setUser(Users user) { this.user = user; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
     public Instant getExpiresAt() { return expiresAt; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
     public boolean isRevoked() { return revoked; }

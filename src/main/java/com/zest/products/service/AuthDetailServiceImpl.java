@@ -2,8 +2,8 @@ package com.zest.products.service;
 
 
 
-import com.zest.products.entity.Users;
-import com.zest.products.repository.AuthRepository;
+import com.zest.products.entity.User;
+import com.zest.products.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,16 +15,16 @@ import java.util.List;
 @Service
 public class AuthDetailServiceImpl implements UserDetailsService {
 
-        private final AuthRepository authRepository;
+        private final UserRepository userRepository;
 
         /**
          * Constructor-based injection is used instead of field injection (@Autowired)
          * for better testability and to make dependencies explicit and immutable.
          *
-         * @param authRepository repository used to fetch user data from the database
+         * @param userRepository repository used to fetch user data from the database
          */
-    public AuthDetailServiceImpl(AuthRepository authRepository) {
-        this.authRepository = authRepository;
+    public AuthDetailServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     /**
@@ -40,7 +40,7 @@ public class AuthDetailServiceImpl implements UserDetailsService {
 
         @Override
         public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Users user = authRepository.findByEmail(username)
+        User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return new org.springframework.security.core.userdetails.User(

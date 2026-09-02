@@ -14,6 +14,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+
+/**
+ * Runs once for every incoming HTTP request. Reads the JWT from the
+ * Authorization header, validates it using JwtUtil, and if valid,
+ * marks the request as authenticated so protected endpoints can be accessed.
+ */
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 

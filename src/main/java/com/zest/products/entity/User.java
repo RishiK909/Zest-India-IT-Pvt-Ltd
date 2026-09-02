@@ -11,7 +11,7 @@ import jakarta.persistence.*;
  */
 @Entity
 @Table(name = "users")
-public class Users extends BaseEntity {
+public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,10 +37,10 @@ public class Users extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    public Users() {
+    public User() {
     }
 
-    public Users(Long userId, String userName, String password, String email, String phoneNumber, String address, Role role) {
+    public User(Long userId, String userName, String password, String email, String phoneNumber, String address, Role role) {
         this.userId = userId;
         this.userName = userName;
         this.password = password;

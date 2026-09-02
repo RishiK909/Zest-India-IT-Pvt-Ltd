@@ -1,13 +1,13 @@
 package com.zest.products.service;
 
 
-import com.zest.products.dto.ApiResponse;
-import com.zest.products.dto.AuthRegisterDto;
-import com.zest.products.dto.AuthResponseDto;
+import com.zest.products.dto.ApiResponseDTO;
+import com.zest.products.dto.AuthRegisterDTO;
+import com.zest.products.dto.AuthResponseDTO;
 import com.zest.products.dto.LoginRequestDTO;
-import com.zest.products.entity.Users;
+import com.zest.products.entity.User;
 import com.zest.products.enums.Role;
-import com.zest.products.repository.AuthRepository;
+import com.zest.products.repository.UserRepository;
 import com.zest.products.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,15 +17,15 @@ import java.util.Optional;
 @Service
 public class AuthServiceImpl implements AuthService{
 
-    private final AuthRepository authRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
 
-    public AuthServiceImpl(AuthRepository authRepository,
+    public AuthServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
                            JwtUtil jwtUtil, RefreshTokenService refreshTokenService) {
-        this.authRepository = authRepository;
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
@@ -40,21 +40,21 @@ public class AuthServiceImpl implements AuthService{
      *         successful or the reason for failure
      */
     @Override
-    public ApiResponse<Void> register(AuthRegisterDto request) {
+    public ApiResponseDTO<Void> register(AuthRegisterDTO request) {
 
-        if (authRepository.findByEmail(request.getEmail()).isPresent()) {
-            return new ApiResponse<>("Email already exists", false);
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            return new ApiResponseDTO<>("Email already exists", false);
         }
 
-        if (authRepository.findByPhoneNumber(request.getPhoneNumber()).isPresent()) {
-            return new ApiResponse<>("Phone number already exists", false);
+        if (userRepository.findByPhoneNumber(request.getPhoneNumber()).isPresent()) {
+            return new ApiResponseDTO<>("Phone number already exists", false);
         }
 
-        if (request.getRole() == Role.Admin) {
-            return new ApiResponse<>("You cannot register as ADMIN", false);
-        }
+        /*if (request.getRole() == Role.Admin) {
+            return new ApiResponseDTO<>("You cannot register as ADMIN", false);
+        }*/
 
-        Users user = new Users();
+        User user = new User();
         user.setUserName(request.getUserName());
         user.setEmail(request.getEmail());
         /**
@@ -66,9 +66,9 @@ public class AuthServiceImpl implements AuthService{
         user.setAddress(request.getAddress());
         user.setRole(request.getRole());
 
-        authRepository.save(user);
+        userRepository.save(user);
 
-        return new ApiResponse<>("User registered successfully", true);
+        return new ApiResponseDTO<>("User registered successfully", true);
     }
 
 
@@ -82,18 +82,18 @@ public class AuthServiceImpl implements AuthService{
      *         JWT token if the login is successful
      */
     @Override
-    public ApiResponse<AuthResponseDto> login(LoginRequestDTO request) {
+    public ApiResponseDTO<AuthResponseDTO> login(LoginRequestDTO request) {
 
-        Optional<Users> userOptional = authRepository.findByEmail(request.getEmail());
+        Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
         if (userOptional.isEmpty()) {
-            return new ApiResponse<>("Invalid email or password", false);
+            return new ApiResponseDTO<>("Invalid email or password", false);
         }
 
-        Users user = userOptional.get();
+        User user = userOptional.get();
 
         boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
         if (!passwordMatches) {
-            return new ApiResponse<>("Invalid email or password", false);
+            return new ApiResponseDTO<>("Invalid email or password", false);
         }
 
         String token = jwtUtil.generateToken(
@@ -105,7 +105,7 @@ public class AuthServiceImpl implements AuthService{
 
         String refreshToken = refreshTokenService.createRefreshToken(user);
 
-        AuthResponseDto authData = new AuthResponseDto(
+        AuthResponseDTO authData = new AuthResponseDTO(
                 token,
                 refreshToken,
                 jwtUtil.extractExpiration(token),
@@ -114,7 +114,7 @@ public class AuthServiceImpl implements AuthService{
                 user.getRole().name()
         );
 
-        return new ApiResponse<>("Login successful", true, authData);
+        return new ApiResponseDTO<>("Login successful", true, authData);
     }
 
 
@@ -128,17 +128,17 @@ public class AuthServiceImpl implements AuthService{
      *         if found, or an appropriate error message otherwise
      */
     @Override
-    public ApiResponse<AuthResponseDto> getCurrentUser(String email) {
+    public ApiResponseDTO<AuthResponseDTO> getCurrentUser(String email) {
 
-        Optional<Users> userOptional = authRepository.findByEmail(email);
+        Optional<User> userOptional = userRepository.findByEmail(email);
 
         if (userOptional.isEmpty()) {
-            return new ApiResponse<>("User not found", false);
+            return new ApiResponseDTO<>("User not found", false);
         }
 
-        Users user = userOptional.get();
+        User user = userOptional.get();
 
-        AuthResponseDto data = new AuthResponseDto(
+        AuthResponseDTO data = new AuthResponseDTO(
                 null,
                 null,
                 user.getUserId(),
@@ -146,7 +146,7 @@ public class AuthServiceImpl implements AuthService{
                 user.getRole().name()
         );
 
-        return new ApiResponse<>("Current user fetched successfully", true, data);
+        return new ApiResponseDTO<>("Current user fetched successfully", true, data);
     }
 }
 

@@ -1,16 +1,13 @@
 package com.zest.products.service;
 
-import com.zest.products.dto.ApiResponse;
-import com.zest.products.dto.AuthRegisterDto;
-import com.zest.products.dto.AuthResponseDto;
-import com.zest.products.dto.LoginRequestDTO;
+import com.zest.products.dto.*;
 
 public interface AuthService {
 
-    ApiResponse<Void> register(AuthRegisterDto request);
+    ApiResponseDTO<Void> register(AuthRegisterDTO request);
 
-    ApiResponse<AuthResponseDto> login(LoginRequestDTO request);
+    ApiResponseDTO<AuthResponseDTO> login(LoginRequestDTO request);
 
-    ApiResponse<AuthResponseDto> getCurrentUser(String email);
+    ApiResponseDTO<AuthResponseDTO> getCurrentUser(String email);
 
 }
