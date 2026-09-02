@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 
 
-public class AuthRegisterDto {
+public class AuthRegisterDTO {
 
     @NotBlank(message = "Username is required")
     private String userName;

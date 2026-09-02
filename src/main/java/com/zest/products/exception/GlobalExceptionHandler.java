@@ -1,6 +1,6 @@
 package com.zest.products.exception;
 
-import com.zest.products.dto.ErrorResponse;
+import com.zest.products.dto.ErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +23,10 @@ public class GlobalExceptionHandler {
 
     // 404 — Resource not found
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFound(
+    public ResponseEntity<ErrorResponseDTO> handleResourceNotFound(
             ResourceNotFoundException ex, HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 HttpStatus.NOT_FOUND.value(),
                 "Not Found",
                 ex.getMessage(),
@@ -37,10 +37,10 @@ public class GlobalExceptionHandler {
 
     // 401 — Invalid/expired/revoked refresh token
     @ExceptionHandler(InvalidRefreshTokenException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(
+    public ResponseEntity<ErrorResponseDTO> handleInvalidRefreshToken(
             InvalidRefreshTokenException ex, HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 HttpStatus.UNAUTHORIZED.value(),
                 "Unauthorized",
                 ex.getMessage(),
@@ -49,12 +49,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
-    // 401 — Bad credentials (login fail scenarios agar exception-based flow use karte ho kahin)
+    // 401 — Bad credentials
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(
+    public ResponseEntity<ErrorResponseDTO> handleBadCredentials(
             BadCredentialsException ex, HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 HttpStatus.UNAUTHORIZED.value(),
                 "Unauthorized",
                 "Invalid email or password",
@@ -63,12 +63,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
-    // 403 — Role-based access denied (@PreAuthorize fail hone pe)
+    // 403 — Role-based access denied
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(
+    public ResponseEntity<ErrorResponseDTO> handleAccessDenied(
             AccessDeniedException ex, HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 HttpStatus.FORBIDDEN.value(),
                 "Forbidden",
                 "You do not have permission to perform this action",
@@ -79,7 +79,7 @@ public class GlobalExceptionHandler {
 
     // 400 — Jakarta Validation errors (@Valid @RequestBody failures)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationErrors(
+    public ResponseEntity<ErrorResponseDTO> handleValidationErrors(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
 
         List<String> details = ex.getBindingResult().getFieldErrors()
@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.toList());
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation Failed",
                 "Input validation failed",
@@ -99,10 +99,10 @@ public class GlobalExceptionHandler {
 
     // 400 — Generic bad request (e.g. IllegalArgumentException)
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(
+    public ResponseEntity<ErrorResponseDTO> handleIllegalArgument(
             IllegalArgumentException ex, HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
                 ex.getMessage(),
@@ -113,13 +113,13 @@ public class GlobalExceptionHandler {
 
     // 500 — Fallback for anything unhandled
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
+    public ResponseEntity<ErrorResponseDTO> handleGenericException(
             Exception ex, HttpServletRequest request) {
 
         log.error("Unhandled exception at path {}: ", request.getRequestURI(), ex);  // 👈 YE ADD KARO
 
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",
                 "Something went wrong. Please try again later.",

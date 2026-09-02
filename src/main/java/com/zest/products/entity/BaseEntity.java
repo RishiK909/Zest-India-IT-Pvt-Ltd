@@ -33,7 +33,7 @@ public class BaseEntity {
     private LocalDateTime deletedAt;
 
     @Column(name = "updated_by")
-    private Long updated_by;
+    private Long updatedBy;
 
 
     public LocalDateTime getCreatedAt() {
@@ -68,12 +68,13 @@ public class BaseEntity {
         this.deletedAt = deletedAt;
     }
 
-    public Long getUpdated_by() {
-        return updated_by;
+
+    public Long getUpdatedBy() {
+        return updatedBy;
     }
 
-    public void setUpdated_by(Long updated_by) {
-        this.updated_by = updated_by;
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
 

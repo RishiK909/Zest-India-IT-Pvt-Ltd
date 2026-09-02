@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+
+/**
+ * Utility class for generating, reading, and validating JWT access tokens.
+ */
 @Component
 public class JwtUtil {
 

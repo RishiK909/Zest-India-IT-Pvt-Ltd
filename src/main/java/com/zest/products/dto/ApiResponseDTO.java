@@ -1,20 +1,20 @@
 package com.zest.products.dto;
 
-public class ApiResponse<T> {
+public class ApiResponseDTO<T> {
 
         private String message;
         private boolean status;
         private T data;
 
-    public ApiResponse() {
+    public ApiResponseDTO() {
     }
 
-    public ApiResponse(String message, boolean status) {
+    public ApiResponseDTO(String message, boolean status) {
         this.message = message;
         this.status = status;
     }
 
-    public ApiResponse(String message, boolean status, T data) {
+    public ApiResponseDTO(String message, boolean status, T data) {
         this.message = message;
         this.status = status;
         this.data = data;

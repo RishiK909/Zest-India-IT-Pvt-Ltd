@@ -1,7 +1,7 @@
 package com.zest.products.repository;
 
 import com.zest.products.entity.RefreshToken;
-import com.zest.products.entity.Users;
+import com.zest.products.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,5 +14,5 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     @Modifying
     @Query("DELETE FROM RefreshToken r WHERE r.user = :user")
-    void deleteAllByUser(Users user);
+    void deleteAllByUser(User user);
 }

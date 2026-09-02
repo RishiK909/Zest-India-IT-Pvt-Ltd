@@ -2,7 +2,7 @@ package com.zest.products.dto;
 
 import java.util.Date;
 
-public class AuthResponseDto {
+public class AuthResponseDTO {
 
         private String token;
         private Date expiresAt;
@@ -12,7 +12,7 @@ public class AuthResponseDto {
         private String refreshToken;
 
 
-    public AuthResponseDto(String token, Date expiresAt, Long id, String userName, String role) {
+    public AuthResponseDTO(String token, Date expiresAt, Long id, String userName, String role) {
         this.token = token;
         this.expiresAt = expiresAt;
         this.id = id;
@@ -20,13 +20,13 @@ public class AuthResponseDto {
         this.role = role;
     }
 
-    public AuthResponseDto(Long id, String userName, String role) {
+    public AuthResponseDTO(Long id, String userName, String role) {
         this.id = id;
         this.userName = userName;
         this.role = role;
     }
 
-    public AuthResponseDto(String token, String refreshToken, Date date, Long userId, String userName, String role) {
+    public AuthResponseDTO(String token, String refreshToken, Date date, Long userId, String userName, String role) {
         this.token = token;
         this.refreshToken = refreshToken;
         this.expiresAt = date;

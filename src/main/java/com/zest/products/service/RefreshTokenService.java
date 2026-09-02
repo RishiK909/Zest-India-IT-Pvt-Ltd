@@ -1,15 +1,15 @@
 package com.zest.products.service;
 
 import com.zest.products.entity.RefreshToken;
-import com.zest.products.entity.Users;
+import com.zest.products.entity.User;
 
 public interface RefreshTokenService {
 
-    String createRefreshToken(Users user);
+    String createRefreshToken(User user);
 
     RefreshToken validateRefreshToken(String rawToken);
 
     String rotateRefreshToken(String oldRawToken);
 
-    void revokeAllTokensForUser(Users user);
+    void revokeAllTokensForUser(User user);
 }
